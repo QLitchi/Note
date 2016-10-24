@@ -1,0 +1,259 @@
+burpsuite.pdf
+在help中可以打开Burp的帮助文档，可以作为官方文档查看。
+burpsuite是一个代理拦截，若想要拦截https，需要配置证书后才能拦截，而wireshark只是抓包工具，并不扮演浏览器和服务器之间的中间人角色，所以不需要配置证书就能抓取https包。
+配置burpsuit截获https数据包：
+burpsuite默认无法截获https的数据包，所以有时会造成页面无法打开的现象，如下配置burpsuite来截获https数据包：
+HTTPS协议是为了数据传输安全的需要，在HTTP原有的基础上，加入了安全套接字层SSL协议，通过CA证书来验证服务器的身份，并对通信消息进行加密。基于HTTPS协议这些特性，我们在使用Burp Proxy代理时，需要增加更多的设置，才能拦截HTTPS的消息。
+配置好浏览器和burpsuite的监听端口后，在浏览器地址栏输入"http://burp"，进入CA证书下载页，进行下载。
+打开浏览器（以chrome为例），设置--管理证书（或更改代理服务器--内容--证书--导入），选择要导入的证书，"证书存储"选择"受信任根证书颁发机构"，完成导入即可。
+卸载CA证书：
+1). 同安装证书操作一样，找到安装的CA证书选择删除即可。（CA证书名字中带有"CA"，并且一般系统自带的证书是无法删除的）。
+2). 在管理控制台中删除（主要解决第一种删除方法失效或在浏览器的证书目录中看不到的证书）：
+在cmd中输入mmc打开管理控制台，文件--添加/删除管理单元，找到"证书"，点击"添加"，选择"我当前的用户"，完成。这是返回管理控制台，会多出一个"证书"节点，找到要删除的证书删除即可。
+burpsuite各模块的功能：
+1. Target(目标)：可以显示捕获的目标的目录结构。
+2. Proxy(代理)：拦截http/https请求和响应，可以对拦截数据进行查看、修改、重新发送等操作。是浏览器和目标服务器之间的中间人。
+3. Spider(蜘蛛/爬虫)：是一个映射web应用程序的工具，用多种技术对一个web应用程序的内容和功能进行全面的清查。
+4. Scanner(扫描器)：可以自动发现web应用程序的安全漏洞。
+5. Intruder(入侵)：用于对web应用程序进行自动化攻击，利用漏洞，模糊测试，暴力猜解等。
+6. Repeater(中继器)：可以手动修改一个请求，重新发送出去，并分析应用程序响应。
+7. Sequencer(会话)：用来分析那些不可预知的应用程序会话令牌和重要数据项的随机性的工具。
+8. Decoder(解码器)：手动或智能编解码的工具。
+9. Comparer(对比)：进行任何两项数据之间的比较。
+10. Extender(扩展)：加载burpsuit的扩展功能，第三方的或自己的。
+11. Options(设置)：brupsuite相关的一些设置。
+12.Alert(警报)：burpsuite的警报日志。
+
+burpsuite各模块的使用：
+1. Target
+Target有两个子模块site map 和 scope。
+site map是目标应用程序的详细信息；scope主要配合site map做一些过滤功能。
+在Target scope中可以通过主机名、域名去限制拦截内容，能方便的控制Burp的拦截范围、操作对象，减少无效噪音。Target scope主要有以下作用：
+限制站点地图和proxy历史中的显示结果；
+Burp Spider抓取哪些内容；
+Burp Scanner自动扫描哪些作用域的安全漏洞；
+在Burp Intruder和Burp Repeater中指定URL；
+在Target scope的设置中主要有两部分：允许规则和去除规则。
+规则主要由协议、域名或IP地址、端口、文件名4个部分组成。
+2. Proxy
+1).在google中设置代理服务器，设置-更改代理服务器-连接-局域网设置-为lan使用代理服务器
+地址为127.0.0.1  端口为8080（brupsuit默认使用8080端口，可以在proxy-option中修改）。
+ie浏览器中，在internet选项-连接-局域网设置中设置burpsuit代理。
+2).proxy模块下有四个子模块，Intercept、Http history、WebSockets history、options。
+3). intercept子模块
+该子模块用于显示和修改http请求和响应，可以设置拦截规则来规定拦截什么样的请求和响应。
+有以下几个选项：
+Forward： 将编辑后的拦截信息重新发送到服务器或浏览器。
+Drop：丢弃这个拦截信息。
+Interception is on/off：打开/关闭拦截。如果关闭，默认所有信息拦截后自动转发。
+Action：当前可选操作的菜单。
+Comment this item：为请求或响应添加标签，以便在History选项卡中识别它们。
+Highlight：位于Comment this item输入框右边的小方格。为请求或响应添加颜色，以便在History选项卡中识别它们。
+4). Httphistory子模块
+记录全部请求和响应。
+Httphistory中有一个显示过滤器，可以根据一定规则选择要显示的历史记录。
+5). Websockethistory子模块
+6). Options子模块
+设置Proxy的相关操作，设置监听、拦截反应、匹配和替换等。
+Options子模块下的各个选项：
+(1).Proxy Listeners部分：
+代理监听器，对代理进行基本设置，默认监听127.0.0.1（本地）的8080端口。
+点击add新添加一个监听器：
+Bind to port：绑定到一个端口。
+Bind to adress：绑定到本地接口的ip地址。
+如果不选择Loopback only，burpsuit将会监听局域网内所有机器。
+(2). Intercept Client Requests 和 Intercept Server Requests ：
+设置拦截什么样的请求和响应。
+(3). Response Modification：
+(4). Match and Replace：
+(5). SSL Pass Through：
+(6). Miscellaneous：
+
+3. Spider
+Spider用于站点信息抓取，可以在短时间内了解到系统的结构和分布情况，Spider主要由Spider status（Spider状态）和Spider scope（Spider 作用域）、Spider options组成。
+Spider作用域用来控制Spider的抓取范围，有两种设置方法，一种是用Target模块中的"Spider this host"，另一种是用户自定义。使用用户自定义时，会出现两个部分，允许规则和去除规则，和Target模块中scope子模块一样。
+Spider options：Spider可选项设置由抓取设置、抓取代理设置、表单提交设置、应用登陆设置、蜘蛛引擎设置、请求消息头设置六个部分组成。
+1). 抓取设置：这个设置中各个设置选项自上而下依次是：检查robots.txt 文件、检测404应答、忽略内容为空的链接、爬取根目录下所有文件和目录、对每一个动态页面发送无参数请求、最大链接深度、最大请求URL参数数目。
+2). 抓取代理设置：
+有两个设置项：
+如果勾选第一个"Passively spider as your browse"，则爬取时通过brup proxy，反之则不通过。
+第二个设置项是设置爬取的深度，默认为0，表示无限深度，即无论有多少层级的URL都需要爬取。
+3). 表单提交设置：主要用来控制爬取过程中对form表单的提交方式。
+4). 应用登陆设置：主要设置爬取时登陆页面的处理方式。
+选择项依次是：不提交登陆信息、手工确认登陆信息、作为普通表单处理（如果选择此项，则把登陆表单的form当作其他表单一样处理，对于登陆表单将使用"表单提交设置" 中的具体配置）、自动提交登陆（选择此项，需要在下方的输入框中指定用户名和密码）
+5). 蜘蛛引擎设置：用来控制蜘蛛抓取的线程数、网络失败时重试的次数、重试暂停间隙等。
+6). HTTP 消息头设置：用来设置Http请求的消息头自定义，比如，可以编辑消息头信息，可以指定请求为移动设备，或者不同的手机型号，或者指定为Safari浏览器，指定HTTP协议版本为1.1、使用referer等。
+
+4. Scanner 
+Burp Scanner主要用来自动检测web系统的各种漏洞。
+1). Burpsuit Scanner 基本使用步骤：
+首先，关闭Burp Proxy；
+在浏览器中浏览要扫描的页面，之后，Burp Target模块和 Burp Proxy的历史模块中将会有浏览记录，右键记录，进行active scan，就会进入Scanner模块进行扫描。
+双击Scanner模块中正在扫描的URL，会弹出详细信息。
+2). 在 Live Scanning子模块下，选择"Use suite scope"，这样，将要扫描的页面加入Target scope中，以后浏览该页面，该页面流经Proxy模块时，Scanner会自动对该页面进行扫描。
+3). Burp Scanner的扫描方式
+有主动扫描和被动扫描。
+主动扫描：
+当使用主动扫描模式时，Burp 会向应用发送新的请求并通过payload验证漏洞。这种模式下的操作，会产生大量的请求和应答数据，直接影响系统的性能，通常使用在非生产环境。它对下列的两类漏洞有很好的扫描效果：
+(1)客户端的漏洞，像XSS、Http头注入、操作重定向；
+(2)客户端的漏洞，像XSS、Http头注入、操作重定向；
+被动扫描：
+当使用被动扫描模式时，Burp不会重新发送新的请求，它只是对已经存在的请求和应答进行分析，这对系统的检测比较安全，尤其在你授权访问的许可下进行的，通常适用于生成环境的检测。一般来说，下列这些漏洞在被动模式中容易被检测出来：
+(1). 提交的密码为未加密的明文；
+(2). 不安全的Cookie的属性，比如缺少的HttpOnly和安全标志；
+(3). cookie的范围缺失；
+(4). 跨域脚本包含和站点引用泄漏；
+(5). 表单值自动填充，尤其是密码；
+(6). SSL保护的内容缓存；
+(7). 目录列表；
+(8). 提交密码后应答延迟；
+(9). session令牌的不安全传输；
+(10). 敏感信息泄露，像内部IP地址，电子邮件地址，堆栈跟踪等信息泄漏；
+(11). 不安全的ViewState的配置；
+(12). 错误或者不规范的Content-type指令；
+4).Burp Scanner可选项设置：
+Attack Insertion Points（攻击插入点设置）：
+Burp Scanner在扫描中，基于原始的请求消息，在每一个插入点构造参数，对原数据进行替换，从而去验证系统漏洞的存在性。通常，以下位置都会被Burp Scanner选择为插入点：
+(1). URL请求参数 ；
+(2). Body参数（比如form表单的值，上传文件、XML参数、JSON参数）；
+(3). Cookie参数 ；
+(4). 参数的名称和个数（通过增加参数个数或者增加参数来验证漏洞）；
+(5). Http Header信息（通过对header信息的篡改来验证漏洞）；
+(6). AFM编码（对flash通信漏洞的验证）；
+(7). REST风格的参数；
+对于以上的攻击插入点，Burp Scanner还是可以通过改变参数的位置来验证漏洞，Burp Scanner中共有URL to body 、URL to cookie、Body to URL、Body to cookie、Cookie to URL、Cookie to body 六种改变参数位置的方式。
+Burp的攻击插入点也支持嵌套的方式，即，如果一个请求的参数值是JSON对象或者XML文本，Burp Scanner在扫描时，可以对JSON对象或XML文本中的属性、属性值进行验证。选中"use nested insertion points"复选框表示使用这种方式。
+"Skip server-side injection tests for this parameters"（服务器端参数跳过） 和 "Skip all tests for this parameters"（所有参数都跳过）两个部分可以指定哪些参数进行跳过，不需要进行漏洞验证。
+Active Scanning Engine（主动扫描引擎）：
+主动扫描引擎设置主要是用来控制主动扫描时的线程并发数、网络失败重试间隔、网络失败重试次数、请求延迟、是否跟踪重定向。其中请求延迟设置（Throttle between requests）和其子选项延迟随机数 （Add random variations to throttle）用在减少应用负荷，模拟人工测试，使得扫描更加隐蔽，而不易被网络安全设备检测出来。
+Active Scanning Optimization（主动扫描优化）：
+此选项的设置主要是为了优化扫描的速度和准确率，尽量地提高扫描速度的同时降低漏洞的误报率。
+扫描速度（Scan speed）分快速、普通、彻底三个选项，不同的选项对应于不同的扫描策略，当选择彻底扫描（Thorough）时，Burp会发送更多的请求，对漏洞的衍生类型会做更多的推导和验证。而当你选择快速扫描（Fast），Burp则只会做一般性的、简单的漏洞验证。
+扫描精准度（Scan accuracy）也同样分为三个选项：最小化假阴性（Minimize false negatives）、普通、最小化假阳性（Minimize false positives）。扫描精准度主要是用来控制Burp的扫描过程中针对漏洞的测试次数。当我们选择最小化假阳性时，Burp会做更多的验证测试，来防止假阳性漏洞的存在，但也是恰恰基于此，当Burp做更多的验证测试时，可能存在恰好无法获取应答的误报，增加了漏洞的噪音。
+智能攻击选择（Use intelligent attack selection ）这个选项通过智能地忽略一些攻击插入点基值的检查，比如说一个参数值包含不正常出现在文件名中的字符，Burp将跳过文件路径遍历检查此参数，使用此选项可加速扫描，并降低在提升扫描速度的同时会导致漏报率上升的风险。
+Active Scanning Areas（主动扫描范围）：
+在主动扫描过程中，你可以根据你的扫描时间、关注的重点、可能性存在的漏洞类型等情况，选择不同的扫描范围。这里可选择的扫描范围有：
+SQL注入 -可以使不同的测试技术（基于误差，时间延迟测试和布尔条件测试），并且也使检查所特有的单独的数据库类型（MSSQL，Oracle和MySQL的）；
+操作系统命令注入 - （信息通知和盲注）；
+反射式跨站点脚本 ；
+存储的跨站点脚本 ；
+文件路径遍历 ；
+HTTP头注入 ；
+XML/ SOAP注入；
+LDAP注入 ；
+URL重定向 ；
+http消息头可操纵；
+服务器的问题；
+Passive Scanning Areas（被动扫描范围设置）：
+被动扫描不会发送新的请求，只会对原有数据进行分析，其扫描范围主要是请求和应答消息中的如下参数或漏洞类型：Headers、Forms、Links、Parameters、Cookies、MIME type、Caching、敏感信息泄露、Frame框架点击劫持、ASP.NET ViewState 。
+
+5. Burp  Intruder
+Intruder工作原理：Intruder在原始请求数据的基础上，通过修改各种请求参数，以获取不同的请求应答。每一次请求中，Intruder通常会携带一个或多个有效攻击载荷（Payload),在不同的位置进行攻击重放，通过应答数据的比对分析来获得需要的特征数据。
+Intruder的一般使用场景：
+(1). 标识符  枚举Web应用程序经常使用的标识符来引用用户、账户、资产等数据信息。例如，用户名，文件ID和账户号码。
+(2). 提取有用的数据  在某些场景下，不是简单地识别有效标识符，而是需要通过简单标识符提取一些其他的数据。比如说，你想通过用户的个人空间id，获取所有用户在个人空间标准的昵称和年龄。
+(3). 模糊测试  很多输入型的漏洞，如SQL注入，跨站点脚本和文件路径遍历可以通过请求参数提交各种测试字符串，并分析错误消息和其他异常情况，来对应用程序进行检测。由于的应用程序的大小和复杂性，手动执行这个测试是一个耗时且繁琐的过程。这样的场景，可以设置Payload，通过Burp Intruder自动化地对Web应用程序进行模糊测试。
+Intruder使用步骤：
+浏览要检测的页面，在Burp Target或Brup Proxy中的history子选项卡中找到要检测的页面的浏览记录，右键，"send to intruder"，发送到Intruder中。在Intruder中进行position、payload等设置之后，点击start attack开始入侵检测。
+position选项卡的设置：
+1). 在position选项卡中主要进行payload位置设置和攻击类型的选择。
+Burp Intruder攻击的基础是围绕刚刚发送过来的原始请求信息，在原始信息指定的位置上设置一定数量的攻击载荷Payload，通过Payload来发送请求获取应答消息。默认情况下，Burp Intruder会对请求参数和Cookie参数设置成Payload position，前缀添加§。当发送请求时，会将§标识的参数替换为Payload。将§标识的参数值替换成什么内容，可以在payload选项卡中设置。
+2).position选项卡中各个操作框的作用：
+attack type，攻击类型的选择，主要有四种：
+Sniper（狙击手模式）：使用一组Payload集合，依次替换Payload位置上（一次攻击只能使用一个Payload位置）被§标志的文本（而没有被§标志的文本将不受影响），对服务器端进行请求，通常用于测试请求参数是否存在漏洞。
+Battering ram（攻城锤模式）：使用单一的Payload集合，依次替换Payload位置上被§标志的文本（而没有被§标志的文本将不受影响），对服务器端进行请求，与狙击手模式的区别在于，如果有多个参数且都为Payload位置标志时，这些位置使用的Payload值是相同的，而狙击手模式每次攻击只能使用一个Payload位置标志。
+Pitchfork（草叉模式）：可以使用多组Payload集合，在每一个不同的Payload标志位置上（最多20个），遍历所有的Payload。举例来说，如果有两个Payload标志位置，第一个Payload值为A和B，第二个Payload值为C和D，则发起攻击时，将共发起两次攻击，第一次使用的Payload分别为A和C，第二次使用的Payload分别为B和D。
+Cluster bomb（集束炸弹模式）：可以使用多组Payload集合，在每一个不同的Payload标志位置上（最多20个），依次遍历所有的Payload。举例来说，如果有两个Payload标志位置，第一个Payload值为A和B，第二个Payload值为C和D，则发起攻击时，将共发起四次攻击，第一次使用的Payload分别为A和C，第二次使用的Payload分别为A和D，第三次使用的Payload分别为B和C，第四次使用的Payload分别为B和D。
+payload选项卡设置：
+payload type：常用的payload类型，共18种。选择哪种类型，下面会出现响应的payload option设置框。各种类型及设置查看手册。
+Intruder option可选项设置：
+Request Headers（请求消息头设置）：主要用来控制请求消息的头部信息，它由Update Content-Length header和Set Connection: close两个选项组成。其中Update Content-Length header如果被选中，Burp Intruder在每个请求添加或更新Content-Length头为该次请求的HTTP体的长度正确的值。这个功能通常是为插入可变长度的Payload到模板的HTTP请求的主体的攻击中，如果没有指定正确的值，则目标服务器可能会返回一个错误，可能会到一个不完整的请求做出响应，或者可能会无限期地等待请求继续接收数据。Set Connection: close如果被选中，表示Burp Intruder在每个请求消息中添加或更新值为“关闭”的连接头，这将更迅速地执行。在某些情况下（当服务器本身并不返回一个有效的Content-Length或Transfer-Encoding头），选中此选项可能允许攻击。 
+Request Engine（请求引擎设置）：主要用来控制Burp Intruder攻击，合理地使用这些参数能更加有效地完成攻击过程。它有如下参数：Number of threads 并发的线程数；Number of retries on network failure 网络失败时候重试次数；Pause before retry 重试前的暂停时间间隔（毫秒）；Throttle between requests 请求延时（毫秒）；Start time开始时间，启动攻击之后多久才开始执行。
+Attack Results（攻击结果设置）：主要用来控制从攻击结果中抓取哪些信息。它的参数有：Store requests / responses 保存请求/应答消息；Make unmodified baseline request 记录请求母板的消息内容；Use denial-of-service mode使用Dos方式；tore full payloads存储所有的Payload值。
+Grep Match：主要用来从响应消息中提取结果项，如果匹配，则在攻击结果中添加的新列中标明，便于排序和数据提取。比如说，在密码猜测攻击，扫描诸如“密码不正确”或“登录成功”，可以找到成功的登录;在测试SQL注入漏洞，扫描包含“ODBC”，“错误”等消息可以识别脆弱的参数。
+其他的操作框：Match type表示匹配表达式还是简单的字符串，Case sensitive match是否大小写敏感，Exclude HTTP headers匹配的时候，是否包含http消息头。
+Grep Extract：可用于提取响应消息中的有用信息。对于列表中配置的每个项目，Burp会增加包含提取该项目的文本的新结果列。然后，可以排序此列（通过单击列标题）命令所提取的数据。此选项是从应用数据挖掘有用的，能够支持广泛的攻击。例如，通过一系列文档ID的循环，可以提取每个文档寻找有趣的项目的页面标题。如果发现返回的其他应用程序用户详细信息的功能，可以通过用户ID重复和检索有关用户寻找管理帐户，甚至密码。如果“遗忘密码”的功能需要一个用户名作为参数，并返回一个用户配置的密码提示，可以通过共同的用户名列表运行和收获的所有相关密码的提示，然后直观地浏览列表寻找容易被猜到密码。
+Grep Payloads：这些设置可用于提取响应消息中是否包含Payload的值，比如说，你想验证反射性的XSS脚本是否成功，可以通过此设置此项。当此项设置后，会在响应的结果列表中，根据Payload组的数目，添加新的列，显示匹配的结果。
+注意"Match against pre-URL-encoded payloads"，如果你在请求消息时配置了 URL-encode payloads ，则这里表示匹配未编码之前的Payload值，而不是转码后的值。
+Redirections（重定向）：这些设置主要是用来控制执行攻击时Burp如何处理重定向，在实际使用中往往是必须遵循重定向，才能实现攻击目的。
+
+6.Burp Repeater
+Repeater是用于手动操作和补发个别HTTP请求，并分析应用程序的响应一个工具。
+Repeater的使用：
+在Target中、Proxy的历史记录中、Scanner的扫描记录中等，选中要实验的条目，右键，"send to repeater"，即可将数据发送到Repeater模块中，在Repeater模块中点击Go即可发送消息并接受响应，通过改变请求消息的参数等来比较每次响应的区别。
+Repeater Option 可选项设置：
+与其他模块不同，Repeater的可选项设置位于顶部菜单中。
+主要有以下操作：
+Update Content-Length：用于控制Burp是否自动更新请求消息头中的Content-Length。
+Unpack gzip / deflate（解压和压缩）：主要用于控制Burp是否自动解压或压缩服务器端响应的内容。
+Follow redirections（跳转控制）：主要用于控制Burp是否自动跟随服务器端请求跳转，比如服务端返回状态码为302，是否跟着应答跳转到302指向的url地址。 它有4个选项，分别是永不跳转（Never），站内跳转（On-site only ）、目标域内跳转（In-scope only）、始终跳转（Always），其中永不跳转、始终跳转比较好理解，站内跳转是指当前的同一站点内跳转；目标域跳转是指target scope中配置的域可以跳转。
+Process cookies in redirections（跳转中处理cookie）：这个选项如果选中，则在跳转过程中设置的Cookie信息，将会被带到跳转指向的URL页面，可以进行提交。
+View：用来控制Repeater的视图布局。
+Action：其他操作，指向Burp的其他工具组件中。
+
+7. Burp Sequence
+Sequence是用于检测数据样本随机性的工具。可以用它来测试应用程序的session tokens(会话tokens)、密码重置令牌或其他重要数据项的是不是可预测的，来降低这些关键数据被伪造的风险。
+Burp Sequencer作为一款随机数分析的工具，在分析过程中，可能会对系统造成不可预测的影响，在你不是非常熟悉系统的情况下，建议不要在生产环境进行数据分析。
+Sequence使用步骤：
+在Target中、Proxy的历史记录中等将寻找token或类似的参数，发送到Sequence模块中，“send to sequence"。
+进入Sequence模块，选中刚才发送过来的记录，点击"configure"进行配置需要分析的token或者参数；在弹出来的对话框中，选中参数值，点击OK，完成参数配置。点击"select live capture"，开始进行参数值的获取，当参数值总数大于100时，可以pause或stop，这时可以点击analyze now 开始分数数据的随机性。
+可以将获取的参数值保存起来，下一次直接加载这些数据，直接进行analyze。在Manual load子模块中加载数据并进行分析。
+Sequence Analysis options 可选项设置：
+Analysis options的目的主要是为了控制token或者参数在进行数据分析过程中，需要做什么样的处理，以及做什么类型的随机性分析。它主要由令牌处理（Token Handling）和令牌分析（Token Analysis）两部分构成。
+1). Token Handling：主要控制令牌在数据分析中如何被处理。
+Pad short tokens at start / end：表示如果应用程序产生的令牌是具有可变长度的，那么这些令牌在数据分析前都需要被填充，以便于进行的统计检验。可以选择是否填充在开始位置或每个令牌的结束位置。在大多数情况下，在开始位置填充是最合适。
+Pad with：表示可以指定将用于填充的字符。在大多数情况下，数字或ASCII十六进制编码的令牌，用“0”填充是最合适的。
+Base64-decode before analyzing：表示在数据分析时是否进行base64解码，如果令牌使用了base64编码的话，则需要勾选此项。
+2). Token Analysis（令牌分析）：主要用来控制对数据进行随机性分析的类型，可以选择多个分析类型，也可以单独启用或禁用每个字符类型级和字节级测试。
+Count和Transitions选项是控制数据分析的字符类型级。count是指分析在令牌内的每个位置所使用的字符的分布。如果是随机生成的样本，所用字符的分布很可能是大致均匀的。
+Transitions是指分析样品数据中的连续符号之间的变化。
+3).下面的几项设置是用于控制数据分析的字节级测试，它比字符级测试功能更强大。启用字节级分析中，每个令牌被转换成一组字节，与设置在每个字符位置的字符的大小决定的比特的总数。它包含的测试类型有以下七种。
+FIPS monobit test：它测试分析0和1在每个比特位置的分配，如果是随机生成的样本，1和0的数量很可能是大致相等。
+FIPS poker test—— 该测试将j比特序列划分为四个连续的、非重叠的分组，然后导出4个数，计算每个数字出现16个可能数字的次数，并采用卡方校验来评估数字的分布。如果样品是随机生成的，这个数字的分布可能是近似均匀的。
+FIPS runs tests —— 该测试将具有相同值的连续的比特序列在每一个位置进行划分成段，然后计算每一个段的长度为1，2，3，4，5，和6以及6以上。如果样品是随机生成的，那么这些段的长度很可能是由样本集的大小所确定的范围之内。
+FIPS long runs test —— 这个测试将有相同值的连续的比特序列在每一个位置进行划分成段，统计最长的段。如果样品是随机生成的，最长的段的数量很可能是由样本集的大小所确定的范围之内。
+Spectral tests —— 该测试是在比特序列的每个位置上做一个复杂的分析，并且能够识别某些样品是通过其他统计检验的非随机性证据。样本试验通过比特序列和将每个系列的连续的数字作为多维空间的坐标并通过它绘制在这些坐标来确定每个位置这个空间的一个点。如果是随机生成的样本，点的此空间中的分布可能是大致均匀;在该空间内的簇的外观表示数据很可能是非随机的。
+Correlation test ——比较每个位置具有相同值的令牌样本与每一个位置具有不同值的短令牌样本之间的熵，以测试在令牌内部的不同的比特位置中的值之间的任何统计学显著关系。如果样品是随机生成的，在给定的比特位置处的值是同样可能伴随着一个或一个零在任何其它位的位置。
+Compressoion test —— 这种测试不使用其他测试中使用的统计方法，而是通过简单直观的指标统计比特序列中每个位置熵的数量。该分析方法尝试使用标准ZLIB压缩比特序列的每个位置，结果表明，当它被压缩在比特序列的大小的比例减少，较高压缩程度表明数据是不太可能被随机产生的。
+8. Burp Decoder
+Decoder是Burpsuit的一款编码解码工具，能对原始数据进行各种编码格式和散列的转换。
+Decoder模块主要有输入域、输出域、编码解码操作选项三大部分组成。
+在输入域中输入需要解码/编码的数据，可以直接粘贴输入、键盘输入，也可以在Burp的其他菜单中发送过来，"send to decoder"。一段文本可以有多次编解码。
+
+9. Burp Comparer
+Compare提供可视化的差异比对功能，来对比分析两次数据之间的区别。使用场景主要有：
+(1). 枚举用户名过程中，对比分析登陆成功和失败时，服务器端反馈结果的区别；
+(2). 使用 Intruder 进行攻击时，对于不同的服务器端响应，可以很快的分析出两次响应的区别在哪里；
+(3). 进行SQL注入的盲注测试时，比较两次响应消息的差异，判断响应结果与注入条件的关联关系；
+Compare的操作步骤主要有两部分组成，第一是数据的加载，第二是差异分析。
+Compare数据的加载：可以粘贴（paste），在文件中加载（load），在Burp的其他菜单中发送过来"send to compare"。如果compare中已经选择了两个不同的请求或响应，下方的比较按钮就会被激活，有两种比较方式：文本比较（words）和字节比较（bytes）。
+文本比较指通过文本的方式比较两个数据的差异，而字节是指通过16进制的形式，比较亮个数据的差异。
+差异分析界面会通过背景颜色显示数据差异。
+
+10. Burpsuit的全局设置
+Burpsuit的Option模块，该模块中的设置对Burpsuit全局生效。Option模块由Connections、HTTP、SSL、Sessions、Display、Misc六个选项卡组成。
+1).Connections选项卡主要用来控制Burp如何来处理平台认证、上游代理服务器、Socks代理、超时设置、主机名或域名解析以及Scope之外的请求六个方面的相关配置。
+latform Authentication（平台身份认证）：这些设置可以配置Burp自动执行到目标Web服务器的平台身份验证，不同的主机可以配置不同的认证方式和证书。目前支持的身份验证类型有：BASIC，NTLMv1，NTLMv2和“摘要”式认证( Digest authentication)。
+其中域名和主机名字段只用于NTLMv1，NTLMv2身份验证。 在平台身份认证（Platform Authentication）设置的最下方有一个Checkbox选项（Prompt for credentials on platform authentication failure），如果此项选中，则表示当遇到身份验证失败时，Burp会显示一个交互式的弹窗，提示验证失败的信息。
+Upstream Proxy Servers（上游代理服务器）：
+这些设置主要是控制Burp是否会发送请求到上游代理服务器，或直转向目标Web服务器。可以配置多个匹配规则，形成一个列表。当配置了多个规则时，可以针对不同的目标主机或主机组指定不同的代理服务器设置。这些规则将按照顺序去与目标Web服务器相匹配，匹配的第一个规则作为生效规则。如果列表没有规则能够匹配，Burp默认采取直连、非代理的方式进行连接。
+Socks proxy（socks 代理）：这些设置允许我们配置Burp使用SOCKS代理的方式进行所有传出的通信，但此设置只在TCP层生效，所有出站请求将通过这个代理发送。如果同时设置了上游HTTP代理服务器配置的规则，则请求上游代理将通过这里配置的SOCKS代理发送。其请求的匹配路径依次是：本地-->上游代理-->SOCKS代理。 使用socks代理需要勾选use socks proxy。
+Timeouts（超时设置）：主要用于指定Burp各种网络任务的超时。可以对以下超时项进行设置（以下的选项设置的值都是以秒为时间单位，如果一个选项留空，那么表示Burp永远不会超时）：
+正常（Normal ）：此设置用于大多数网络通信，并确定Burp怎样放弃请求和记录已发生超时前等待。
+开放式应答（Open-ended responses）：该设置只用在一个响应正在处理不包含内容长度或传输编码HTTP标头。在这种情况下，Burp确定传输已经完成之前等待指定的时间间隔。 
+域名解析（Domain name resolution ）：此设置确定Burp如何重新进行成功的域名查找，如果目标主机地址频繁变化时需要设定为一个适当的低的值。
+失败的域名解析（Failed domain name resolution ）：此设置确定Burp多久会重新尝试不成功的域名查找。
+Hostname resolution（主机名或域名解析）：通过这些设置，可以指定主机名映射到IP地址，来覆盖本地计算机提供的DNS解析。每个主机名解析规则需要指定主机名、与主机名相关联的IP地址。同时，每一个规则可以单独启用或禁用来控制其是否生效。在渗透测试中，如果使用了隐形代理来测试客户端组件，此功能可以确保请求正确转发。
+Out-of-scope requests（scope之外的请求）：这一项设置可以防止Brupsuit发送任何超出Target模块中scope子模块中所设置的scope范围之外的请求。当勾选了Drop all out-of-scope requests，浏览器发送超出范围内的请求时，会被Burp丢弃。也可以勾选use custom scope，来自定义范围，勾选后，会出现范围配置页面，和scope子模块中一样，分为包含域和排除域，配置方式和scope一致。
+2).
+3).
+
+11. 
+
+
+
+
+
+
+
+
