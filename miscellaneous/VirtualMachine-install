@@ -1,0 +1,5 @@
+虚拟机的 CD\DVD和硬盘选择IDE模式（32位机不能安装64位虚拟机，64位机cpu支持vt且vt已经打开,可以安装64位虚拟机）
+磁盘类型，IDE和SCSI和SATA是硬盘的几种不同的接口类型，对虚拟机而言，是指要把虚拟机的磁盘虚拟成什么类型。IDE是早期的硬盘类型，硬盘接口少，传输稳定，兼容性强。SCSI是小型计算机系统接口，一个硬盘可以连接多个设备，并且允许一个设备传输数据的同时另一个设备进行数据查找。占用CPU极低。SATA最大的优势是传输速率高。
+确保主机CPU支持虚拟化，并且hardware virtualization打开（开机进入bios，在security下的system security下，将virtualization technology设置为enabled，将virtualization technology directed也设置为enabled）
+安装虚拟机系统前要将虚拟磁盘分区，分区后重启时要进入虚拟机的bios选择CD启动（或开机时按esc直接选择启动项，选择CDROM）
+安装成功后，再次开机时进入虚拟机bios将开机启动项改为硬盘启动，否则仍为CD启动，就还会进入安装系统的界面
