@@ -1,0 +1,42 @@
+Cross-site request forgery，跨站请求伪造。有两个关键点：请求是跨站的；请求是伪造的。与XSS的很像。XSS的核心是构造可执行的JavaScript脚本，而CSRF并不依赖JavaScript代码，CSRF的核心是伪造可成功执行的http请求。伪造请求的方法有很多种，也可以伪造各种类型的请求用来完成不同的攻击目的。
+XSS是用一切办法让构造的JS攻击代码成功执行；CSRF是用一切办法让浏览器发送预想的http请求（被伪造出来的请求）。
+CSRF即，欺骗用户浏览实施攻击的站点，浏览时浏览器会自动发送的预先设置的请求，服务端接收到该携带攻击者意图的请求后，会按该请求完成相应的操作。
+CSRF主要用来获取cookie等。
+1. CSRF一般攻击思路：
+1). 用户浏览并登陆网站A
+2). 生成网站A的cookie
+3). 在不登出网站A的情况下访问网站B（含有CSRF漏洞的网站）
+4). 网站B隐式/显式的向网站A发送一个预先构造的http请求，这时会自动携带之前生成的网站A的cookie；网站Ａ接收请求后，按照请求执行相应操作，从而实现攻击。
+2.  关于cookie：
+cookie格式：
+Cookie: NAME1=VALUE1;NAME2=VALUE2;…..;NAMEn=VALUEn
+Cookie字段的重要属性有：
+[name][value][domain][path][expires][httponly][secure]等。
+如：Set-Cookie: name = VALUE;  expires = DATE; path = PATH; domain = DOMAIN_NAME;
+同域内浏览器发出任何一个请求都会带上cookie，无论请求什么资源。在cookie没有失效时再次访问同一站点，也会带上cookie。服务器响应头的Set-Cookie字段可以添加、修改、删除cookie，多数情况下客户端通过JavaScript也可以添加、修改、删除cookie。Cookie字段经常被用来存储用户的会话信息，如用户登陆认证后的Session。
+浏览器支持的Cookie分为两种：Session-Cookie(临时Cookie)和Third-party Cookie(本地Cookie)。本地Cookie是浏览器在Set-Cookie时设置了Expire时间，只有到了Expire时间后Cookie才会失效，这种Cookie保存在本地；临时Cookie则没有指定Expire时间，浏览器关闭后，临时Cookie就失效了。如果浏览器在一个A域的页面中加载另一个B域的资源，某些浏览器(如IE)出于安全考虑会阻止缓存的B域的本地Cookie的发送（只有直接访问B域或在同域中访问B域才能发送）。除非在响应头中设置了P3P，服务器将会允许浏览器发送第三方cookie。
+3.  大多数CSRF攻击使用的都是<img>、<iframe>、<script>，等带"src"属性的标签(将构造的URL放在src属性中，发起http请求)，这类标签只能发起一次"Get"请求，不能发起post请求。有些服务端严格区分get和post请求，把重要的操作设置为只能用post请求操作，但这不能解决CSRF问题，最简单的，可以用post请求构造form表单，然后用JS自动提交这个表单，就可以实现post请求的CSRF攻击。
+4.  
+5.
+6.
+7.
+CSRF的挖掘：
+1. 目标表单是否有有效的token随机数
+2. 目标表单是否有验证码
+3. 目标是否判断了refer来源
+4. 网站根目录下crossdomain.xml的allow-access-from domain是否是通配符
+5. 目标的JSON数据似乎可以自定义callback函数等
+6.
+
+
+CSRF的防御
+CSRF能够攻击成功的一个重要原因就是所有重要参数都是可以被攻击者猜到的，比如攻击者构造一个删除文章的url，"http://abc/delete?username=name&item=1234"，这里的username参数和item参数都被攻击者猜测出来，从而完成攻击。（违反了安全的不可预测性原则）
+1. 验证码，在一些重要操作中设置需要提交验证码。
+2. Refer Check ， 通过识别页面的refer头信息判断该页面的来源，在正常操作中，页面与页面之间具有一定的逻辑关系，比如发帖操作，正常情况下用户需要先登录到用户后台后访问发帖页面，refer的值就是发帖页面。但并不是所有时候都能获取到refer头，而且refer头可以伪造；并且这种防御方式不严谨。
+3. 运用不可预测性原则，把参数值设置为不可预测的，比如将参数值加密，或使用一些随机数。但是如果加密或混淆后的url变得非常难读，会降低用户体验，也会给数据分析工作带来不便；如果加密的参数值每次都改变，用户就无法收藏该页面。可以增加一个token解决。
+4. Anti CSRF Token，保持url中的参数不变，新增一个token参数，如："http://abc/delete?username=name&item=1234&token=[random]"，token值由客户端和服务端共同持有，实际操作中可以存放在session或cookie中。token的值一定要足够随机，保密。
+5.
+
+
+
+
